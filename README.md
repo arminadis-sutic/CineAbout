@@ -55,6 +55,31 @@ Flutter klijenti (zasebne aplikacije):
 | Desktop administracija (Windows) | Flutter (stable, građeno s 3.47.9) s podrškom za Windows desktop: Visual Studio s paketom *Desktop development with C++*, uključen Windows *Developer Mode*. |
 | Mobilna aplikacija (Android) | Flutter, Android SDK i Android emulator (AVD) ili telefon s uključenim USB debugging. |
 
+### Okruženje testiranja Android aplikacije
+
+Funkcionalno testiranje mobilne aplikacije obavljeno je ručno
+na fizičkom Android telefonu pomoću zasebnog LAN builda.
+Provjereni su odjava i prijava, učitavanje početnog ekrana,
+Discover praznog stanja, Watchlist, Profile i Forum.
+Sama swipe radnja u Discoveru nije testirana.
+
+Predajni release APK izgrađen je iz commita `9803bba` i koristi
+zadanu API adresu `http://10.0.2.2:5218` za Android emulator (AVD).
+LAN build korišten u telefonskom testiranju izrađen je ranije,
+prije završnog čišćenja izvornog koda.
+
+Predajni APK uspješno je instaliran i pokrenut na fizičkom telefonu,
+ali na njemu ne može doseći backend preko adrese `10.0.2.2`,
+što je očekivano jer je ta adresa namijenjena Android emulatoru.
+
+Funkcionalni tokovi predajnog APK-a u AVD-u nisu testirani
+zbog ograničenja lokalnog računara. Test LAN builda na telefonu
+ne predstavlja provjeru tačnog predajnog APK-a u emulatoru.
+
+Za korištenje na fizičkom telefonu potrebno je napraviti zaseban
+build s `API_BASE_URL` postavljenim na LAN adresu računara,
+prema uputama u nastavku.
+
 ## Pokretanje backenda
 
 1. Za predaju, raspakiraj `.env-tajne.zip` u korijen repozitorija.
