@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DotNetEnv" Version="3.1.1" />
+    <PackageReference Include="EasyNetQ" Version="7.8.0" />
+    <PackageReference Include="FirebaseAdmin" Version="3.3.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="9.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="9.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.6" />
+    <PackageReference Include="Polly" Version="8.6.6" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.6" />
+	<None Include="..\CineAboutApp\appsettings.json" Link="appsettings.json">
+		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	</None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CineAboutApp.Interfaces\CineAboutApp.Interfaces.csproj" />
+    <ProjectReference Include="..\CineAboutApp.Models\CineAboutApp.Models.csproj" />
+    <ProjectReference Include="..\CineAboutApp.Services\CineAboutApp.Services.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "740692501492",
+    "project_id": "cineabout-673cd",
+    "storage_bucket": "cineabout-673cd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:740692501492:android:3225a5ead3cc4ece0acfa1",
+        "android_client_info": {
+          "package_name": "com.cineabout.cineabout_mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBJ5DMwpzYTduobSVtBdMOdrZ_D0BPs1vc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

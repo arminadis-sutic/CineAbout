@@ -1,0 +1,115 @@
+services:
+  cineabout-db:
+    image: mcr.microsoft.com/mssql/server:2022-CU14-ubuntu-22.04
+    env_file:
+      - .env
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${SQL_SA_PASSWORD}
+      - MSSQL_PID=${SQL_MSSQL_PID}
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:1434:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q \"SELECT 1\" || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - cineabout-network
+
+  cineabout-rabbitmq:
+    image: rabbitmq:3.13-management
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS}
+    ports:
+      - "127.0.0.1:15672:15672"
+      - "127.0.0.1:5672:5672"
+    restart: unless-stopped
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - cineabout-network
+
+  cineabout-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - ASPNETCORE_HTTP_PORTS=${API_CONTAINER_PORT}
+      - ConnectionStrings__db1=Server=${DB_HOST},${DB_PORT};Database=${DB_NAME};User Id=${DB_USER};Password=${DB_PASSWORD};MultipleActiveResultSets=true;TrustServerCertificate=True;Trusted_Connection=False
+      - ConnectionStrings__RabbitMQ=host=${RABBITMQ_HOST};username=${RABBITMQ_USER};password=${RABBITMQ_PASS}
+      - Jwt__Secret=${JWT_SECRET}
+      - Jwt__Issuer=${JWT_ISSUER}
+      - Jwt__Audience=${JWT_AUDIENCE}
+      - Jwt__ExpirationInHours=${JWT_EXPIRATION_HOURS}
+      - Jwt__RefreshExpirationInHours=${JWT_REFRESH_EXPIRATION_HOURS}
+      - Jwt__ResetExpirationInMinutes=${JWT_RESET_EXPIRATION_MINUTES}
+      - FrontendUrl=${FRONTEND_URL}
+      - BackendUrl=${BACKEND_URL}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      - Tmdb__AccessToken=${TMDB_ACCESS_TOKEN}
+    restart: unless-stopped
+    ports:
+      - "${API_HOST_BIND}:${API_HOST_PORT}:${API_CONTAINER_PORT}"
+    depends_on:
+      cineabout-db:
+        condition: service_healthy
+      cineabout-rabbitmq:
+        condition: service_healthy
+    networks:
+      - cineabout-network
+    volumes:
+      - ./CineAboutApp/wwwroot:/app/wwwroot
+      - ./PrivateMedia:/app/PrivateMedia
+
+  cineabout-subscriber:
+    build:
+      context: .
+      dockerfile: CineAboutApp.Subscriber/Dockerfile
+    env_file:
+      - .env
+    environment:
+      - ConnectionStrings__RabbitMQ=host=${RABBITMQ_HOST};username=${RABBITMQ_USER};password=${RABBITMQ_PASS}
+      - DELIVERY_MODE=${DELIVERY_MODE:-live}
+      - MailSettings__Host=${MAIL_HOST}
+      - MailSettings__Port=${MAIL_PORT}
+      - MailSettings__EnableSsl=${MAIL_ENABLE_SSL}
+      - MailSettings__UseDefaultCredentials=${MAIL_USE_DEFAULT_CREDENTIALS}
+      - MailSettings__Username=${MAIL_USERNAME}
+      - MailSettings__Email=${MAIL_EMAIL}
+      - MailSettings__Password=${MAIL_PASSWORD}
+      - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}
+      - FIREBASE_CREDENTIALS_JSON=${FIREBASE_CREDENTIALS_JSON}
+      - FIREBASE_CREDENTIALS_FILE=/run/secrets/firebase-service-account.json
+    volumes:
+      # Optional alternative to FIREBASE_CREDENTIALS_JSON: a service-account file on the host (outside the repository and the image),
+      # mounted read-only; used only when FIREBASE_CREDENTIALS_JSON is empty. Without FIREBASE_CREDENTIALS_PATH a harmless placeholder is mounted.
+      - ${FIREBASE_CREDENTIALS_PATH:-./firebase-credentials/service-account.placeholder.json}:/run/secrets/firebase-service-account.json:ro
+    restart: unless-stopped
+    depends_on:
+      cineabout-rabbitmq:
+        condition: service_healthy
+    networks:
+      - cineabout-network
+
+networks:
+  cineabout-network:
+    driver: bridge
+
+volumes:
+  sqlserver_data:
+  rabbitmq_data:
